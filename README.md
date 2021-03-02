@@ -1,0 +1,2 @@
+# middle-ground
+Solo Project
