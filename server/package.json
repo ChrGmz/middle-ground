@@ -1,0 +1,41 @@
+{
+  "name": "middle-ground",
+  "version": "1.0.0",
+  "description": "chat app with feature that allows users to pick a venue between their locations to meet up",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon -r dotenv/config index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChrGmz/middle-ground.git"
+  },
+  "author": "Chris Gomez",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ChrGmz/middle-ground/issues"
+  },
+  "homepage": "https://github.com/ChrGmz/middle-ground#readme",
+  "dependencies": {
+    "@googlemaps/google-maps-services-js": "^3.1.16",
+    "@mapbox/polyline": "^1.1.1",
+    "express": "^4.17.1",
+    "geolib": "^3.3.1",
+    "helmet": "^4.4.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.11.18",
+    "s-haversine": "^2.0.0",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "dotenv": "^8.2.0",
+    "eslint": "^7.21.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-react": "^7.22.0",
+    "eslint-plugin-react-hooks": "^1.7.0",
+    "nodemon": "^2.0.7"
+  }
+}
