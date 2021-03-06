@@ -8,7 +8,7 @@ const verify = (token, secret) => new Promise((resolve, reject) => {
   });
 });
 
-exports.checkAuth = async (req, res, next) => {
+exports.checkToken = async (req, res, next) => {
   const { headers } = req;
   const cid = headers['x-client-id'] || req.query.cid;
   const [, token] = (headers.authorization || '').split(/\s+/);

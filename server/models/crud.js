@@ -43,3 +43,24 @@ exports.createClient = async (pid) => {
     return { error: err};
   }
 };
+
+exports.getMessagesFromDb = async (pid) => {
+  try {
+    const user = await User.findOne({ pid });
+    const messages = user.get('conversationHistory');
+    return messages;
+  } catch (err) {
+    console.error(err);
+    return { error: err };
+  }
+}
+
+exports.deleteClient = async (cid) => {
+  try {
+    await Client.deleteOne({ cid });
+    return { success: true };
+  } catch (err) {
+    console.error(err);
+    return { success: false, error: err };
+  }
+};

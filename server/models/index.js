@@ -1,3 +1,6 @@
+// will need to use sequelize to use a psql db as nonrelational db is not ideal for
+// users with multiple sessions, multiple conversations with different users
+
 const mongoose = require('mongoose');
 
 const DB_CONNECTION_URI =

@@ -1,10 +1,15 @@
+// @ts-nocheck
 const { getVenuesByMidPointOnRoute } = require('../services/google-api-service');
 const validator = require('validator');
 const { sendVerificationCode, validateVerificationCode } = require('../services/twilio-api-service');
 const { MeetUp, User } = require('../models');
 const { v4: uuid } = require('uuid');
-const { getUserByPhoneNumber } = require('../models/crud');
+const { getUserByPhoneNumber, getMessagesFromDb } = require('../models/crud');
 const { sign } = require('jsonwebtoken');
+
+const createToken = async (pid, secret) => sign({
+  pid,
+  }, secret, { expiresIn: process.env.TOKEN_TTL });
 
 // need to refactor this code to pull out CRUD operations to the models folder
 
@@ -30,7 +35,10 @@ exports.requestMeetUp = async (req, res) => {
   if (!origin || !conversationId || !venueType) return res.status(400).json({ status: 400, error: 'Bad request: Please send with correct paramaters!' });
   try {
     const user = await User.findOne({ id: userId });
-    if (!user || !user.get('conversationHistory').some(conversation => conversation.id !== conversationId)) return res.status(400).json({error: 'Invalid information submitted!'});
+    const conversationHistory = await user.get('conversationHistory');
+    if (!conversationHistory?.length) return res.status(400).json({status: 400, error: 'Invalid parameters were submitted!'});
+    const conversation = conversationHistory.find(conversation => conversation.id !== conversationId);
+    if (!user || !conversation) return res.status(400).json({error: 'Invalid information submitted!'});
     const meetUp = await MeetUp.create({
       id: uuid().replace(/-/g, ''),
       users: [user.get('pid')],
@@ -48,20 +56,19 @@ exports.verifyUser = async (req, res, next) => {
   const { verificationCode } = req.body;
   const phoneNumber = req.body.phoneNumber?.replace(/\D/, '');
   if (!verificationCode || !validator.default.matches(verificationCode, /^\d{6}$/) || !phoneNumber || !validator.default.isMobilePhone(phoneNumber)) {
-    res.status(403).json({
-      error: 'Bad request: Verification submitted is invalid.',
-      status: 403,
+    res.status(404).json({
+      error: 'Bad request: Verification information submitted is invalid.',
+      status: 404,
     });
   }
   try {
-    const response = await validateVerificationCode(phoneNumber, verificationCode);
-    // @ts-ignore
-    if (response.error) return res.status(500).json({ error: response.error });
-    if (!response) return res.status(403).json({ error: 'Authentication failed', status: 403 });
+    const verified = await validateVerificationCode(phoneNumber, verificationCode);
+    if (verified.error) return res.status(500).json({ error: response.error });
+    if (!verified) return res.status(403).json({ error: 'Authentication failed', status: 403 });
     next();
   } catch (err) {
     console.log(err);
-    return { error: err }
+    return res.status(500).json({ error: err });
   }
 };
 
@@ -102,28 +109,56 @@ exports.checkUser = async (req, res) => {
     if (user.error) return res.status(500).json({ status: 500, error: user.error});
     const cid = uuid().replace(/-/g, '');
     const secret = uuid().replace(/-/g, '');
+    const req.token = createToken(user.pid, secret);
   } catch {
 
   }
-}
-
-exports.authorizeUser = async (req, res, next) => {
-  const {
-    cid,
-    pid,
-    secret,
-  } = req.user;
-
-  req.token = sign({
-    pid,
-  }, secret, { expiresIn: process.env.TOKEN_TTL });
-  next();
 };
 
-exports.getConversations = async (req, res) => {
+exports.refreshToken = async (req, res) => {
   const {
     cid,
     pid,
     secret,
   } = req.user;
+
+  const token = sign({
+    pid,
+  }, secret, { expiresIn: process.env.TOKEN_TTL });
+  
+  res.status(200).json({
+    token,
+    ...req.payload,
+  });
+};
+
+exports.getMessages = async (req, res, next) => {
+  const {
+    pid
+  } = req.user;
+  try {
+    const messages = await getMessagesFromDb(pid);
+    if (messages.error) res.status(500).json({ error: 'DB error', status: 500 });
+    req.payload = { messages };
+    next();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: 500, error: err });
+  }
+};
+
+exports.logOutUser = async (req, res) => {
+  const { cid } = req.user;
+  try {
+    const response = await deleteClient(cid);
+    if (!response.success) return res.status(500).json({ status: 500, error: response.error });
+    return res.status(200).json({ status: 200, success: true });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 500, error: err });
+  }
+};
+
+exports.postMessage = async (req, res) => {
+  const { pid, contactId, message } = req.body;
 };
