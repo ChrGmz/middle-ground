@@ -11,7 +11,11 @@ exports.findMidPoint = (points, midDistance) => {
       const [lat2, lng2] = points[i + 1];
       const distanceToMidPoint = midDistance - distance;
       const bearing = getGreatCircleBearing([lng1, lat1], [lng2, lat2]);
-      const midPoint = computeDestinationPoint([lng1, lat1], distanceToMidPoint, bearing);
+      const midPoint = computeDestinationPoint(
+        [lng1, lat1],
+        distanceToMidPoint,
+        bearing,
+      );
       return midPoint;
     }
     distance += leg;

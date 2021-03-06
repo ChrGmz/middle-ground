@@ -1,7 +1,6 @@
-const { findMidPoint } = require('./helpers');
-
 const { Client } = require('@googlemaps/google-maps-services-js');
 const { decode } = require('@mapbox/polyline');
+const { findMidPoint } = require('./helpers');
 
 const client = new Client({});
 
