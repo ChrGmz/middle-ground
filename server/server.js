@@ -3,7 +3,10 @@ const helmet = require('helmet');
 const router = require('./routes');
 
 const app = express();
-process.env.PRODUCTION_MODE || app.use(require('cors')());
+if (process.env.NODE_ENV !== 'production') app.use(require('cors')({
+  origin: `http://localhost:${process.env.CLIENT_PORT}`
+}));
+
 const PORT = process.env.SERVER_PORT || 3001;
 
 app.use(helmet());
